@@ -1,7 +1,7 @@
 from unittest import TestCase
 from torch import nn, optim
 import torch
-from image_lstm.embedding_loader import AlexNetFC3
+from image_lstm.embedding_loader import EmbeddingExtractor
 from image_lstm.feature_lstm import FeatureLSTM
 
 
@@ -9,7 +9,7 @@ class TestFeatureLSTM(TestCase):
 
     def setUp(self):
         self.lstm = FeatureLSTM(512, 2, 100, 100)
-        self.embedding_loader = AlexNetFC3()
+        self.embedding_loader = EmbeddingExtractor()
 
         self.album_photos = ["/Users/amorvan/Documents/Databases/moonpig_all/7339.jpg",
                              "/Users/amorvan/Documents/Databases/moonpig_all/7339.jpg",

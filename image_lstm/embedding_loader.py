@@ -4,12 +4,10 @@ from torch import nn
 from skimage import io, transform
 
 
-
-
-class AlexNetFC3(nn.Module):
+class EmbeddingExtractor(nn.Module):
 
     def __init__(self):
-        super(AlexNetFC3, self).__init__()
+        super(EmbeddingExtractor, self).__init__()
         original_model = models.resnet18(pretrained=True)
         feature_map = list(original_model.children())[:-1]
         self.extractor = nn.Sequential(*feature_map)

@@ -1,6 +1,6 @@
 import torch
 import torch.nn.functional as F
-from image_lstm.embedding_loader import AlexNetFC3
+from image_lstm.embedding_loader import EmbeddingExtractor
 
 
 class FeatureLSTM(torch.nn.Module):
@@ -16,7 +16,7 @@ class FeatureLSTM(torch.nn.Module):
         self.hidden_to_tags = torch.nn.Linear(self.hidden_size, n_classes)
         self.hidden = (torch.zeros(1, 1, self.hidden_size),
                        torch.zeros(1, 1, self.hidden_size))
-        self.feature_loader = AlexNetFC3()
+        self.feature_loader = EmbeddingExtractor()
 
     def init_hidden(self):
         self.hidden = (torch.zeros(1, 1, self.hidden_size),
