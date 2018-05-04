@@ -12,5 +12,9 @@ class TestCufedLoader(TestCase):
 
     def test_data_retrieval(self):
         for images, label in self.loader.data():
+            print("image, label", images, label)
+
+    def test_valid_data_retrieval(self):
+        for images, label in self.loader.data(train=False):
             print(images, label)
-            return
+            print('ok')
