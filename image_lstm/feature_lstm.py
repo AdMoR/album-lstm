@@ -37,10 +37,9 @@ class FeatureLSTM(torch.nn.Module):
     def build_batch(self, photos):
         feats = None
         batch_size = 50
-        n_batch = int(len(photos) / batch_size) + 1
-        for i in range(n_batch):
+        for i in range(0, len(photos), batch_size):
             imgs = torch.cat([self.feature_loader.load_img_from_path(photo_path)
-                              for photo_path in photos[i * batch_size: (i + 1) * batch_size]])
+                              for photo_path in photos[i: i + batch_size]])
             if feats is None:
                 feats = self.feature_loader.forward(imgs)
             else:

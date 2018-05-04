@@ -37,5 +37,7 @@ class Cufed(object):
             if not os.path.exists(image_path):
                 continue
             images = [os.path.join(image_path, img_name) for img_name in sorted(os.listdir(image_path))]
+            if len(images) == 0:
+                continue
             yield images, self.label_to_index[label[0]]
 
