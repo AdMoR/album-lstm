@@ -18,6 +18,10 @@ class FeatureLSTM(torch.nn.Module):
                        torch.zeros(1, 1, self.hidden_size))
         self.feature_loader = AlexNetFC3()
 
+    def init_hidden(self):
+        self.hidden = (torch.zeros(1, 1, self.hidden_size),
+                       torch.zeros(1, 1, self.hidden_size))
+
     def forward(self, photos):
         batch = self.build_batch(photos)
         embeds = self.get_embedding(batch)

@@ -1,16 +1,21 @@
 import pickle
 from image_lstm.feature_lstm import FeatureLSTM
-from torch import nn, optim
+from torch import nn, optim, LongTensor
+from CUFED_loader.cufed_parse import Cufed
 
-lstm = FeatureLSTM(512, 2, 100, 100)
+loader = Cufed("./CUFED/images", "./CUFED/event_type.json")
+lstm = FeatureLSTM(512, len(loader.label_to_index), 100, 100)
 loss_function = nn.NLLLoss()
 optimizer = optim.SGD(lstm.parameters(), lr=0.1)
-albums = []
 
-for epoch in range(10):
-    for album, label in albums:
-        batch = lstm.build_batch(album)
-        predicted_label = lstm.forward().unsqueeze(0)
+
+for epoch in range(1):
+    for album, label in loader.data():
+        label = LongTensor([label])
+
+        lstm.zero_grad()
+        lstm.init_hidden()
+        predicted_label = lstm.forward(album).unsqueeze(0)
 
         loss = loss_function(predicted_label, label)
         loss.backward()
