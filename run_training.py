@@ -29,7 +29,7 @@ for epoch in range(4):
         all_losses.append(loss.numpy()[0])
         loss.backward()
         optimizer.step()
-    writer.add_scalar("training/loss", sum(all_losses) / len(all_losses), epoch)
+    writer.add_scalars("training/loss", {"nll": sum(all_losses) / len(all_losses)}, epoch)
 
     # Validation step
     all_losses = []
@@ -42,7 +42,7 @@ for epoch in range(4):
         loss = loss_function(predicted_label, label)
 
         all_losses.append(loss.numpy()[0])
-    writer.add_scalar("validation/loss", sum(all_losses) / len(all_losses), epoch)
+    writer.add_scalars("validation/loss", {"nll": sum(all_losses) / len(all_losses)}, epoch)
 
 writer.export_scalars_to_json("./training_and_val_scalars.json")
 writer.close()
