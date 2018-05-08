@@ -47,4 +47,20 @@ class FeatureLSTM(torch.nn.Module):
 
         return feats.view(len(photos), self.feature_size)
 
+    def test(self, data):
+        correct = 0
+        incorrect = 0
+        for album, label in  data:
+            self.zero_grad()
+            self.init_hidden()
+            predicted_label = int(torch.argmax(self.forward(album)).numpy())
+
+            if predicted_label == label:
+                correct += 1
+            else:
+                incorrect += 1
+
+        return correct, incorrect
+
+
 
