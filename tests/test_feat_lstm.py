@@ -1,6 +1,7 @@
 from unittest import TestCase
 from torch import nn, optim
 import torch
+import os
 from image_lstm.embedding_loader import EmbeddingExtractor
 from image_lstm.feature_lstm import FeatureLSTM
 
@@ -11,9 +12,8 @@ class TestFeatureLSTM(TestCase):
         self.lstm = FeatureLSTM(512, 2, 100, 100)
         self.embedding_loader = EmbeddingExtractor()
 
-        self.album_photos = ["/Users/amorvan/Documents/Databases/moonpig_all/7339.jpg",
-                             "/Users/amorvan/Documents/Databases/moonpig_all/7339.jpg",
-                             "/Users/amorvan/Documents/Databases/moonpig_all/7339.jpg"]
+        image_dir = "../CUFED_mini/images/0_7138083@N04"
+        self.album_photos = [os.path.join(image_dir, f) for f in os.listdir(image_dir)][:51]
         self.album_label = torch.LongTensor([1])
 
     def test_lstm_forward(self):
