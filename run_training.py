@@ -1,6 +1,7 @@
 import pickle
 from tensorboardX import SummaryWriter
 import torch
+import copy
 from torch import nn, optim, LongTensor
 from image_lstm.feature_lstm import FeatureLSTM
 from image_lstm.feature_rnn import FeatureRNN
@@ -35,7 +36,7 @@ for epoch in range(4):
         predicted_label = sequence_model.forward(album)
 
         loss = loss_function(predicted_label, label)
-        all_losses.append(loss)
+        all_losses.append(loss.item())
         loss.backward()
         optimizer.step()
     writer.add_scalars("training/loss", {"nll": sum(all_losses) / len(all_losses)}, epoch)
@@ -50,7 +51,7 @@ for epoch in range(4):
         predicted_label = sequence_model.forward(album)
         loss = loss_function(predicted_label, label)
 
-        all_losses.append(loss)
+        all_losses.append(loss.item())
     writer.add_scalars("validation/loss", {"nll": sum(all_losses) / len(all_losses)}, epoch)
 
 writer.export_scalars_to_json("./training_and_val_scalars.json")
