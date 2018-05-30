@@ -13,7 +13,7 @@ cuda_enabled = False
 
 if cuda_enabled:
     torch.set_default_tensor_type('torch.cuda.FloatTensor')
-    label_format = lambda label: LongTensor([label]).cuda
+    label_format = lambda label: LongTensor([label]).cuda()
 else:
     label_format = lambda label: LongTensor([label])
 
@@ -31,7 +31,6 @@ for epoch in range(20):
     for album, label in loader.data():
         print(album, label)
         label = label_format(label)
-
 
         sequence_model.zero_grad()
         sequence_model.init_hidden()
@@ -57,5 +56,5 @@ for epoch in range(20):
 writer.export_scalars_to_json("./training_and_val_scalars.json")
 writer.close()
 
-torch.save(lstm.state_dict, "model.torch")
+torch.save(sequence_model.state_dict, "model.torch")
 json.dump(loader.label_to_index, open("label_to_index", "w"))
