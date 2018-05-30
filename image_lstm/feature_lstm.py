@@ -29,7 +29,7 @@ class FeatureLSTM(torch.nn.Module):
             embeds.view(len(photos), 1, -1), self.hidden)
         tags = self.hidden_to_tags(lstm_out.view(len(photos), -1))
         tag_scores = F.softmax(tags)
-        return tag_scores[-1]
+        return tag_scores[-1].unsqueeze(0)
 
     def get_embedding(self, features):
         return self.embedding(features)
