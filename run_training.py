@@ -38,6 +38,7 @@ for epoch in range(20):
 
         loss = loss_function(predicted_label, label)
         loss.backward()
+        torch.nn.utils.clip_grad_norm(sequence_model.parameters(), 0.1)
         optimizer.step()
 
     # Validation step
