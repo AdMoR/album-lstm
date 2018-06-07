@@ -56,6 +56,8 @@ class Cufed(object):
         else:
             elements = self.prepare_batch(self.validation_albums)
 
+        print(">>>>>>>>", elements)
+
         while len(elements) > 0:
             # Collect the batch
             batch = []
@@ -64,7 +66,7 @@ class Cufed(object):
 
             # Get same sequence size for all elements of the batch
             albums, labels = self.batchify(batch)
-            print("yielding ", albums, labels)
+            print("yielding ", len(albums), len(albums[0]), len(albums[1]), labels)
             yield  albums, labels
 
     def prepare_batch(self, iterator):
@@ -94,7 +96,8 @@ class Cufed(object):
         selected_elements = [sorted(random.sample(list(range(len(pair[1]))), k=min_nb_elems))
                              for pair in batch]
         # For each element from the batch, we subsample to have the same size everywhere
-        return [[path for k, pair in enumerate(batch)
+        return [[path
                  for i, path in enumerate(pair[1])
-                 if i in selected_elements[k]]], \
+                 if i in selected_elements[k]]
+                for k, pair in enumerate(batch)], \
                [pair[0] for pair in batch]
