@@ -1,15 +1,22 @@
 import json
 import os
+import random
 import itertools
 from collections import defaultdict
 
 
 class Cufed(object):
 
-    def __init__(self, image_folder, label_path):
+    def __init__(self, image_folder, label_path, reduce_label=False):
         self.image_folder = image_folder
         self.label_dict = json.load(open(label_path))
         self.prepare_classes_to_index()
+
+        self.label_reduction =\
+            {"Important Personal Event": ["Wedding", "Birthday", "Graduation"],
+             "Personal Activity": ["Personal Sports"],
+             "Personal Trip": ["Urban Trip", "Cruise", "Theme Park"],
+             "Holiday": ["Christmas", "Halloween"]}
 
     def class_stats(self):
         all_classes = defaultdict(lambda :0)
@@ -19,7 +26,6 @@ class Cufed(object):
                     all_classes[vv] += 1
             else:
                 all_classes[v] += 1
-
         return all_classes
 
     def prepare_classes_to_index(self):
@@ -38,28 +44,57 @@ class Cufed(object):
             per_label_ids[self.label_to_index[v]].append(k)
 
         # Now define the training and validation for the set of albums
-        self.training_albums = list(itertools.chain(*[l[:-3] for l in per_label_ids.values()]))
-        self.validation_albums = list(itertools.chain(*[l[-3:] for l in per_label_ids.values()]))
 
-    def data(self, train=True):
-        for album_id, label in self.label_dict.items():
+        self.training_albums = []
+        self.training_albums += [(k, v) for k, v in per_label_ids.items()]
+        self.validation_albums = []
+        #list(itertools.chain(*[(k, v[-3:]) for k, v in per_label_ids.items()]))
 
-            # We can use only the albums in the training set when we are in training
-            if train and album_id not in self.training_albums:
-                continue
-            if not train and album_id not in self.validation_albums:
-                continue
+    def data(self, train=True, batch_size=2):
+        if train:
+            elements = self.prepare_batch(self.training_albums)
+        else:
+            elements = self.prepare_batch(self.validation_albums)
 
-            image_path = os.path.join(self.image_folder, album_id)
-            # If path doesn't exist, continue
-            if not os.path.exists(image_path):
-                continue
+        while len(elements) > 0:
+            # Collect the batch
+            batch = []
+            for _ in range(min(batch_size, len(elements))):
+                batch.append(elements.pop())
 
-            images = [os.path.join(image_path, img_name)
-                      for img_name in sorted(os.listdir(image_path))]
-            # If no photo available, continue
-            if len(images) == 0:
-                continue
+            # Get same sequence size for all elements of the batch
+            albums, labels = self.batchify(batch)
+            print("yielding ", albums, labels)
+            yield  albums, labels
 
-            yield images, self.label_to_index[label[0]]
+    def prepare_batch(self, iterator):
+        print(iterator)
+        elements = []
 
+        for label, album_ids in iterator:
+            print("label, album_id", label, album_ids)
+            for album_id in album_ids:
+                image_path = os.path.join(self.image_folder, album_id)
+                # If path doesn't exist, continue
+                if not os.path.exists(image_path):
+                    continue
+                images = [os.path.join(image_path, img_name)
+                          for img_name in sorted(os.listdir(image_path))]
+                # If no photo available, continue
+                if len(images) == 0:
+                    continue
+
+                elements.append((label, images))
+
+        return sorted(elements, key=lambda p: len(p[1]))
+
+    def batchify(self, batch):
+        min_nb_elems = min([len(pair[1]) for pair in batch])
+        # Get a sorted list of indexes to sample from the image list that we have for each album
+        selected_elements = [sorted(random.sample(list(range(len(pair[1]))), k=min_nb_elems))
+                             for pair in batch]
+        # For each element from the batch, we subsample to have the same size everywhere
+        return [[path for k, pair in enumerate(batch)
+                 for i, path in enumerate(pair[1])
+                 if i in selected_elements[k]]], \
+               [pair[0] for pair in batch]
