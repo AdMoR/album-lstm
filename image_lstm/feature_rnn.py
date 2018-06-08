@@ -21,7 +21,7 @@ class FeatureRNN(torch.nn.Module):
 
     def forward(self, photos):
         if type(photos) != list:
-            photos = [photos]
+            photos = [[photos]]
         features = self.build_batch(photos)
 
         for feature in features:

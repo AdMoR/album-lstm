@@ -10,10 +10,7 @@ from CUFED_loader.cufed_parse import Cufed
 import random
 
 
-
-
 cuda_enabled = False
-
 if cuda_enabled:
     torch.set_default_tensor_type('torch.cuda.FloatTensor')
     label_format = lambda label: LongTensor(label).cuda()
@@ -35,7 +32,8 @@ for try_ in range(10):
     batch_size = 2#random.randint(2, 4)
 
     sequence_model = FeatureRNN(512, h_size, len(loader.label_to_index))
-    optimizer = optim.Adam(sequence_model.parameters(), lr=lr)
+    optimizer = optim.Adam(list(sequence_model.i2o.parameters()) +\
+                           list(sequence_model.i2h.parameters()), lr=lr)
 
     for epoch in range(20):
         # Training step

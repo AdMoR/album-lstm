@@ -15,12 +15,14 @@ class TestFeatureRNN(TestCase):
         self.model.init_hidden(batch_size=1)
         labels = self.model.forward([["../CUFED_mini/images/0_7138083@N04/5271641595.jpg",
                                      "../CUFED_mini/images/0_7138083@N04/5271641595.jpg"]])
+        print(labels.shape)
         self.assertEqual(labels.size()[1], 3, "Bad number of labels")
 
     def test_backward(self):
-        self.model.init_hidden(batch_size=1)
-        labels = self.model.forward([["../CUFED_mini/images/0_7138083@N04/5271641595.jpg"]])
-
+        self.model.init_hidden(batch_size=2)
+        labels = self.model.forward([["../CUFED_mini/images/0_7138083@N04/5271641595.jpg"],
+                                     ["../CUFED_mini/images/0_7138083@N04/5271641595.jpg"]])
+        print(labels.shape)
         loss_function = torch.nn.NLLLoss()
-        loss = loss_function(labels, torch.LongTensor(1))
+        loss = loss_function(labels, torch.LongTensor([1, 1]))
         loss.backward()
