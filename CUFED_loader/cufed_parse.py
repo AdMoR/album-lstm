@@ -56,8 +56,6 @@ class Cufed(object):
         else:
             elements = self.prepare_batch(self.validation_albums)
 
-        print(">>>>>>>>", elements)
-
         while len(elements) > 0:
             # Collect the batch
             batch = []
@@ -66,15 +64,12 @@ class Cufed(object):
 
             # Get same sequence size for all elements of the batch
             albums, labels = self.batchify(batch)
-            print("yielding ", len(albums), len(albums[0]), len(albums[1]), labels)
             yield  albums, labels
 
     def prepare_batch(self, iterator):
-        print(iterator)
         elements = []
 
         for label, album_ids in iterator:
-            print("label, album_id", label, album_ids)
             for album_id in album_ids:
                 image_path = os.path.join(self.image_folder, album_id)
                 # If path doesn't exist, continue
