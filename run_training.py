@@ -21,12 +21,14 @@ else:
     label_format = lambda label: LongTensor(label)
 
 loader = Cufed("./CUFED_mini/images", "./CUFED_mini/event_type.json")
+json.dump(loader.label_to_index, open("label_to_index", "w"))
 #sequence_model = FeatureLSTM(512, len(loader.label_to_index), 100, 100)
 loss_function = nn.NLLLoss()
-writer = SummaryWriter()
 
 
 for try_ in range(10):
+
+    writer = SummaryWriter()
 
     h_size = int(10 ** (1 + 2 * random.random()))
     lr = 10 ** (-1 - 2 * random.random())
@@ -63,8 +65,9 @@ for try_ in range(10):
             all_losses.append(loss.item())
         #writer.add_scalars("validation/loss", {"nll": sum(all_losses) / len(all_losses)}, epoch)
 
-    writer.export_scalars_to_json("./training_and_val_scalars.json")
+    writer.export_scalars_to_json("./training_and_val_scalars_{}.json".format(try_))
     writer.close()
 
-    torch.save(sequence_model.state_dict, "model_{}_{}_{}.torch".format(h_size, lr, batch_size))
-    json.dump(loader.label_to_index, open("label_to_index", "w"))
+    torch.save(sequence_model.state_dict, "model_{}_{}_{}_{}.torch".format(try_, h_size, lr,
+                                                                           batch_size))
+
