@@ -54,16 +54,15 @@ for try_ in range(10):
 
         # Validation step
         all_losses = []
-        for album, label in loader.data(train=False):
+        for album, label in loader.data(train=False, batch_size=1):
             label = label_format(label)
 
             sequence_model.zero_grad()
-            sequence_model.init_hidden()
+            sequence_model.init_hidden(batch_size=1)
             predicted_label = sequence_model.forward(album)
-            loss = loss_function(predicted_label, label)
-
-            all_losses.append(loss.item())
-        #writer.add_scalars("validation/loss", {"nll": sum(all_losses) / len(all_losses)}, epoch)
+            all_losses.append(torch.argmax(predicted_label, 1) == label)
+        writer.add_scalars("validation/loss",
+                           {"accuracy": sum(all_losses) / len(all_losses)}, epoch)
 
     writer.export_scalars_to_json("./training_and_val_scalars_{}.json".format(try_))
     writer.close()
