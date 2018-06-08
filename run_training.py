@@ -32,7 +32,7 @@ for try_ in range(10):
 
     h_size = int(10 ** (1 + 2 * random.random()))
     lr = 10 ** (-1 - 2 * random.random())
-    batch_size = random.randint(2, 4)
+    batch_size = 2#random.randint(2, 4)
 
     sequence_model = FeatureRNN(512, h_size, len(loader.label_to_index))
     optimizer = optim.Adam(sequence_model.parameters(), lr=lr)
@@ -40,11 +40,12 @@ for try_ in range(10):
     for epoch in range(20):
         # Training step
         for albums, labels in loader.data(batch_size=batch_size):
-            print(albums, labels)
+            print(len(albums[0]), batch_size, labels)
+            current_batch_size = len(albums)
             labels = label_format(labels)
 
             sequence_model.zero_grad()
-            sequence_model.init_hidden(batch_size=batch_size)
+            sequence_model.init_hidden(batch_size=current_batch_size)
             predicted_label = sequence_model.forward(albums)
 
             loss = loss_function(predicted_label, labels)
@@ -60,7 +61,9 @@ for try_ in range(10):
             sequence_model.zero_grad()
             sequence_model.init_hidden(batch_size=1)
             predicted_label = sequence_model.forward(album)
-            all_losses.append(torch.argmax(predicted_label, 1) == label)
+            result = torch.argmax(predicted_label, 1) == label
+            print(result)
+            all_losses.append(result)
         writer.add_scalars("validation/loss",
                            {"accuracy": sum(all_losses) / len(all_losses)}, epoch)
 

@@ -1,3 +1,5 @@
+.idea
+*.pyc
 CUFED_loader/__pycache__/cufed_parse.cpython-36.pyc
 *pycache*
 *DS_Store*

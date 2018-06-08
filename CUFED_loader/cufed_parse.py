@@ -46,8 +46,9 @@ class Cufed(object):
         # Now define the training and validation for the set of albums
 
         self.training_albums = []
-        self.training_albums += [(k, v) for k, v in per_label_ids.items()]
+        self.training_albums += [(k, v[:-1]) for k, v in per_label_ids.items()]
         self.validation_albums = []
+        self.validation_albums+= [(k, v[-1:]) for k, v in per_label_ids.items()]
         #list(itertools.chain(*[(k, v[-3:]) for k, v in per_label_ids.items()]))
 
     def data(self, train=True, batch_size=2):
