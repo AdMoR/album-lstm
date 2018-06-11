@@ -17,7 +17,7 @@ Here are some example of pics of the albums :
 
 The project can easily be run with the latest docker image of pytorch :
 
-`nvidia-docker `
+`sudo nvidia-docker run -v $$$$:/code --rm -ti --ipc=host pytorch/pytorch:latest`
 
 Once in the docker, run the install of packages :
 
