@@ -84,7 +84,9 @@ class Cufed(object):
 
                 elements.append((label, images))
 
-        return sorted(elements, key=lambda p: len(p[1]))
+        random.shuffle(elements)
+
+        return sorted(elements, key=lambda p: len(p[1]), reverse=True)
 
     def batchify(self, batch):
         min_nb_elems = min([len(pair[1]) for pair in batch])
