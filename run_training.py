@@ -27,18 +27,22 @@ for try_ in range(10):
 
     writer = SummaryWriter()
 
-    h_size = int(10 ** (1 + 2 * random.random()))
-    lr = 10 ** (-1 - 2 * random.random())
-    batch_size = 2
+    h_size = int(10 ** (2.5 + 1.7 * random.random()))
+    lr = 10 ** (-2 - 2 * random.random())
+    batch_size = 1
 
     sequence_model = FeatureRNN(512, h_size, len(loader.label_to_index)).cuda()
     optimizer = optim.Adam(list(sequence_model.i2o.parameters()) +\
                            list(sequence_model.i2h.parameters()), lr=lr)
 
-    for epoch in range(20):
+    print("\n\n\n")
+
+    for epoch in range(50):
         # Training step
+        all_losses = []
+        print(">>>", h_size, lr, batch_size)
         for albums, labels in loader.data(batch_size=batch_size):
-            print(len(albums[0]), batch_size, labels)
+            #print(len(albums[0]), batch_size, labels)
             current_batch_size = len(albums)
             labels = label_format(labels)
 
@@ -51,7 +55,13 @@ for try_ in range(10):
             torch.nn.utils.clip_grad_norm(list(sequence_model.i2o.parameters()) +\
                                           list(sequence_model.i2h.parameters()), 0.1)
             optimizer.step()
-            print(torch.norm(sequence_model.i2h.weight, 2))
+            results = torch.argmax(predicted_label, 1) == labels
+            #print(torch.norm(sequence_model.i2h.weight, 2), results)
+            all_losses.append(torch.sum(results))
+
+        print("train ", float(sum(all_losses)) / len(all_losses))
+        writer.add_scalars("training/loss",
+                           {"{}_{}_{}".format(h_size, lr, batch_size): sum(all_losses) / len(all_losses)}, epoch)
 
         # Validation step
         all_losses = []
@@ -62,10 +72,11 @@ for try_ in range(10):
             sequence_model.init_hidden(batch_size=1)
             predicted_label = sequence_model.forward(album)
             result = torch.argmax(predicted_label, 1) == label
-            print(result)
+            #print(result)
             all_losses.append(result)
+        print("val ", float(sum(all_losses)) / len(all_losses))
         writer.add_scalars("validation/loss",
-                           {"{}_{}_{}".format(h_size, lr, batch_size): sum(all_losses) / len(all_losses)}, epoch)
+                           {"{}_{}_{}".format(h_size, lr, batch_size): float(sum(all_losses)) / len(all_losses)}, epoch)
 
     writer.export_scalars_to_json("./training_and_val_scalars_{}.json".format(try_))
     writer.close()
