@@ -6,6 +6,10 @@ from collections import defaultdict
 
 
 class Cufed(object):
+    """
+    CUFED is a datset of albums with a label (like "Urban Trip") for each album.
+
+    """
 
     def __init__(self, image_folder, label_path, reduce_label=False):
         self.image_folder = image_folder
@@ -17,6 +21,86 @@ class Cufed(object):
              "Personal Activity": ["Personal Sports"],
              "Personal Trip": ["Urban Trip", "Cruise", "Theme Park"],
              "Holiday": ["Christmas", "Halloween"]}
+
+    ######################
+    #   MAIN FUNCTIONS   #
+    ######################
+
+    def data(self, train=True, batch_size=2):
+        """
+        We collect a dataset D=[(x, y), ...]
+        Where x has the format [n_batch, n_images_in_album, feature_in_image] and y is an index
+
+        We sort D based on the number of images in the album of x to improve batch efficency
+
+        We call 
+        1. prepare_batch
+        2. batchify
+        3. yield result
+        """
+        if train:
+            elements = self.prepare_batch(self.training_albums)
+        else:
+            elements = self.prepare_batch(self.validation_albums)
+
+        while len(elements) > 0:
+            # Collect the batch
+            batch = []
+            for _ in range(min(batch_size, len(elements))):
+                batch.append(elements.pop())
+
+            # Get same sequence size for all elements of the batch
+            albums, labels = self.batchify(batch)
+            yield  albums, labels
+
+    def prepare_batch(self, iterator):
+        """
+        Elements are ordered to avoid having to sample too much. 
+        """
+        elements = []
+
+        for label, album_ids in iterator:
+            for album_id in album_ids:
+                image_path = os.path.join(self.image_folder, album_id)
+                # If path doesn't exist, continue
+                if not os.path.exists(image_path):
+                    continue
+                images = [os.path.join(image_path, img_name)
+                          for img_name in sorted(os.listdir(image_path))]
+                # If no photo available, continue
+                if len(images) == 0:
+                    continue
+
+                elements.append((label, images))
+
+        random.shuffle(elements)
+
+        return sorted(elements, key=lambda p: len(p[1]), reverse=True)
+
+    def batchify(self, batch, n_images=None):
+        """
+        We form batches for the RNN, the expected format is 
+        [n_batch, n_images_in_album, feature_in_image]
+
+        Here we can subselect the number of images per album to reduce memory consumption
+        """
+        # We have two choices take the min number of the two albums or just a number inferior to it
+        min_nb_elems = min([len(pair[1]) for pair in batch])
+        if n_images is not None:
+            min_nb_elems = min(n_images, min_nb_elems)
+        # Get a sorted list of indexes to sample from the image list that we have for each album
+        selected_elements = [sorted(random.sample(list(range(len(pair[1]))), k=min_nb_elems))
+                             for pair in batch]
+        # For each element from the batch, we subsample to have the same size everywhere
+        return [[path
+                 for i, path in enumerate(pair[1])
+                 if i in selected_elements[k]]
+                for k, pair in enumerate(batch)], \
+               [pair[0] for pair in batch]
+
+    #######################
+    #   Various helpers.  #
+    #######################
 
     def class_stats(self):
         all_classes = defaultdict(lambda :0)
@@ -50,52 +134,3 @@ class Cufed(object):
         self.validation_albums = []
         self.validation_albums+= [(k, v[-3:]) for k, v in per_label_ids.items()]
         #list(itertools.chain(*[(k, v[-3:]) for k, v in per_label_ids.items()]))
-
-    def data(self, train=True, batch_size=2):
-        if train:
-            elements = self.prepare_batch(self.training_albums)
-        else:
-            elements = self.prepare_batch(self.validation_albums)
-
-        while len(elements) > 0:
-            # Collect the batch
-            batch = []
-            for _ in range(min(batch_size, len(elements))):
-                batch.append(elements.pop())
-
-            # Get same sequence size for all elements of the batch
-            albums, labels = self.batchify(batch)
-            yield  albums, labels
-
-    def prepare_batch(self, iterator):
-        elements = []
-
-        for label, album_ids in iterator:
-            for album_id in album_ids:
-                image_path = os.path.join(self.image_folder, album_id)
-                # If path doesn't exist, continue
-                if not os.path.exists(image_path):
-                    continue
-                images = [os.path.join(image_path, img_name)
-                          for img_name in sorted(os.listdir(image_path))]
-                # If no photo available, continue
-                if len(images) == 0:
-                    continue
-
-                elements.append((label, images))
-
-        random.shuffle(elements)
-
-        return sorted(elements, key=lambda p: len(p[1]), reverse=True)
-
-    def batchify(self, batch):
-        min_nb_elems = min([len(pair[1]) for pair in batch])
-        # Get a sorted list of indexes to sample from the image list that we have for each album
-        selected_elements = [sorted(random.sample(list(range(len(pair[1]))), k=min_nb_elems))
-                             for pair in batch]
-        # For each element from the batch, we subsample to have the same size everywhere
-        return [[path
-                 for i, path in enumerate(pair[1])
-                 if i in selected_elements[k]]
-                for k, pair in enumerate(batch)], \
-               [pair[0] for pair in batch]
